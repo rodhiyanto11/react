@@ -1,14 +1,10 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow
- */
+
 
 import React, {Component} from 'react';
-import {Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, ListView} from 'react-native';
+import {Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, ListView, ActivityIndicator, FlatList} 
+from 'react-native';
 import { createStackNavigator , createAppContainer} from 'react-navigation';
+
 
 class App extends Component {
   render(){
@@ -93,47 +89,149 @@ class InputUser extends Component {
 class ViewDataUser extends Component{
   static navigationOptions = {
     title : 'Data'
-
   }
-  constructor(props) {  
-    super(props);  
-
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});  
-    this.state = {  
-        dataSource: ds.cloneWithRows([ "Android",  
-            "iOS","Java","Swift",  
-            "Php","Hadoop","Sap",  
-            "Python","Ajax", "C++",  
-            "Ruby", "Rails",".Net",  
-            "Perl",  
-        ])  
-    };  
-}  
-getListViewItem = (rowData) => {  
-  Alert.alert(rowData);  
-}  
-    render(){
-      return(
-        <View style={styles.containerview} >
-            <ListView  
-                    
-                    dataSource={this.state.dataSource}  
-                    renderRow={(rowData) =>  
-                       <Text style={styles.rowViewContainer}  
-                             onPress={this.getListViewItem.bind(this, rowData)}>{rowData}  
-                       </Text>  
-                    }  
-                    renderSeparator={(sectionId, rowId) =>  
-                        <View key={rowId} style={styles.separator} />}//adding separation  
-                />  
-        </View>
-      );
+  constructor(props){
+    super(props);
+    this.state = {
+      isLoading : true,
+      data : []
     }
+  }
+  async componentDidMount(){
+    
+     this.fetchdata();
+  }
+  fetchdata =  async () => {
+    const response  =  await fetch('http://localhost/tr_reactnative/viewuser.php');
+    const json =  await response.json();
+    console.log(json.results);
+    this.setState({isLoading: false, data:json.results})
+  }
+  Action_click = (id,name,email,phonenumber) => {
+    
+    this.props.navigation.navigate('Three',
+    {
+      id : id,
+      name : name,
+      email : email,
+      phonenumber : phonenumber
+    })
+  }
+ 
+  render(){
+    //console.log(this.state.data);
+    
+    return(
+      <View style={styles.containerview} >
+       <FlatList
+       style = {{marginTop:20}}
+        data = {this.state.data}
+        keyExtractor={item => item.id.toString()}
+        renderItem = {({item})=>
+        <Text 
+        style={styles.rowViewContainer} 
+        onPress = {this.Action_click.bind(this,item.id,item.name,item.email,item.phone_number)}
+        >
+        {item.name}{} 
+        </Text>
+      } 
+      />
+      </View>
+    );
+  }
 }
-const CodeTR = createStackNavigator({
+class UpdateDeleteUser extends Component{
+  static navigationOptions = {
+    title : 'UpdateDelete User'
+  }
+  constructor(props){
+    super(props);
+    this.state = {
+      TextInputId : '',
+      TextInputName : '',
+      TextInputEmail :  '',
+      TextInputPhoneNumber :  ''
+    }
+  }
+  componentDidMount(){
+   
+    this.setState({
+      TextInputId : this.props.navigation.state.params.id,
+      TextInputName : this.props.navigation.state.params.name,
+      TextInputEmail : this.props.navigation.state.params.email,
+      TextInputPhoneNumber: this.props.navigation.state.params.phonenumber,
+
+    })
+  }
+  DeleteUsers = () =>{
+      fetch('http://localhost/tr_reactnative/deleteuser.php',{
+        method : "POST",
+        headers : {
+          'Accept' : "application/json",
+          "Content-type" : "application/json"
+        },
+        body : JSON.stringify({
+          id : this.state.TextInputId
+         
+        })
+      }).then((response) => response.json())
+        .then((responseJson) => {
+          this.ViewUserList();
+          Alert.alert(responseJson.message)
+        }).catch((error) => {
+          console.log(error)
+        })
+        
+  }
+  ViewUserList = () => {
+    this.props.navigation.navigate('Second')
+  }
+  render(){
+    return (
+      <View style={styles.container}>
+        <TextInput 
+          value = {this.state.TextInputName}
+          placeholder="Name" 
+          style={styles.TextInput}
+          onChangeText = {TextInputValue => this.setState({TextInputName : TextInputValue})}
+          >
+        </TextInput>
+        <TextInput 
+          value = {this.state.TextInputEmail}
+          placeholder="Email" 
+          style={styles.TextInput}
+          onChangeText = {TextInputValue => this.setState({TextInputEmail : TextInputValue})}
+          >
+        </TextInput>
+        <TextInput 
+        value = {this.state.TextInputPhoneNumber}
+          placeholder="PhoneNumber" 
+          style={styles.TextInput}
+          onChangeText = {TextInputValue => this.setState({TextInputPhoneNumber : TextInputValue})}
+          >
+        </TextInput>
+        <TouchableOpacity 
+          onPress = {this.UpdateUsers}
+          style = {styles.btnSubmit}
+          >
+          <Text style={{color:"#fff"}}>Update</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          onPress = {this.DeleteUsers}
+          style = {styles.btnSubmit}
+          >
+          <Text style={{color:"#fff"}}>Delete</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+}
+const CodeTR = createStackNavigator({  
   First : { screen : InputUser },
-  Second : { screen : ViewDataUser }
+  Second : { screen : ViewDataUser },
+  Three : { screen : UpdateDeleteUser }
 })
+
 const AppContainer = createAppContainer(CodeTR);
 export default App;
 const styles = StyleSheet.create({
@@ -174,7 +272,15 @@ const styles = StyleSheet.create({
     paddingTop : 20,
     flex : 1
   },
-separator: {  
+rowViewContainer : {
+  textAlign : 'center',
+  fontSize : 20,
+  paddingTop : 10,
+  paddingRight : 10,
+  paddingBottom : 10,
+  borderWidth : 1
+}
+/*separator: {  
     height: 0.5, width: "100%", backgroundColor: "#000"  
 },  
 rowViewContainer: {  
@@ -188,6 +294,6 @@ rowViewContainer: {
     alignItems: 'center',  
     fontSize: 20,  
     marginLeft: 10,  
-},  
+},  */
 
 });
