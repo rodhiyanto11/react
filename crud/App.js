@@ -97,10 +97,27 @@ class ViewDataUser extends Component{
       data : []
     }
   }
-  async componentDidMount(){
-    
-     this.fetchdata();
+  /*componentDidMount() {
+    const { navigation } = this.props;
+    this.focusListener = navigation.addListener("didFocus", () => {
+      // The screen is focused
+      // Call any action
+    });
+  }*/
+
+  
+  componentDidMount(){
+    const { navigation } = this.props;
+    this.focusListener = navigation.addListener("didFocus", () => {
+      this.fetchdata();
+    });
+     //this.fetchdata();
   }
+  componentWillUnmount() {
+    // Remove the event listener
+    this.focusListener.remove();
+  }
+
   fetchdata =  async () => {
     const response  =  await fetch('http://localhost/tr_reactnative/viewuser.php');
     const json =  await response.json();
