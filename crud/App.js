@@ -28,7 +28,7 @@ class InputUser extends Component {
     const {TextInputEmail} = this.state;
     const {TextInputPhoneNumber} = this.state;
     //Alert.alert("oke")
-    fetch('http://localhost/tr_reactnative/insert.php',{
+    fetch('http://192.168.100.18/tr_reactnative/insert.php',{
       method : "POST",
       headers : {
         'Accept' : "application/json",
@@ -97,13 +97,6 @@ class ViewDataUser extends Component{
       data : []
     }
   }
-  /*componentDidMount() {
-    const { navigation } = this.props;
-    this.focusListener = navigation.addListener("didFocus", () => {
-      // The screen is focused
-      // Call any action
-    });
-  }*/
 
   
   componentDidMount(){
@@ -119,7 +112,7 @@ class ViewDataUser extends Component{
   }
 
   fetchdata =  async () => {
-    const response  =  await fetch('http://localhost/tr_reactnative/viewuser.php');
+    const response  =  await fetch('http://192.168.100.18/tr_reactnative/viewuser.php');
     const json =  await response.json();
     console.log(json.results);
     this.setState({isLoading: false, data:json.results})
@@ -181,7 +174,7 @@ class UpdateDeleteUser extends Component{
     })
   }
   DeleteUsers = () =>{
-      fetch('http://localhost/tr_reactnative/deleteuser.php',{
+      fetch('http://192.168.100.18/tr_reactnative/deleteuser.php',{
         method : "POST",
         headers : {
           'Accept' : "application/json",
